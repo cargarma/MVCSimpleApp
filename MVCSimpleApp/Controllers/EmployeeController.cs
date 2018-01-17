@@ -10,7 +10,7 @@ namespace MVCSimpleApp.Controllers {
 
         // GET: Employee 
         public ActionResult Index() {
-            var employees = from e in GetEmployeeList()
+            var employees = from e in empList
                             orderby e.ID
                             select e;
             return View(employees);
@@ -29,7 +29,23 @@ namespace MVCSimpleApp.Controllers {
         // POST: Employee/Create 
         [HttpPost]
         public ActionResult Create(FormCollection collection) {
-            try { // TODO: Add insert logic here
+            try {
+                Employee emp = new Employee();
+                emp.Name = collection["Name"];
+
+                DateTime jDate;
+                if (DateTime.TryParse(collection["DOB"], out jDate)) {
+                    emp.JoiningDate = jDate;
+
+                } else {
+                    emp.JoiningDate = DateTime.Today;
+                }
+
+                string age = collection["Age"];
+                emp.Age = Int32.Parse(age);
+
+                empList.Add(emp);
+
                 return RedirectToAction("Index");
             } catch {
                 return View();
@@ -38,14 +54,20 @@ namespace MVCSimpleApp.Controllers {
 
         // GET: Employee/Edit/5 
         public ActionResult Edit(int id) {
-            return View();
+            var employee = empList.Single(m => m.ID == id);
+            return View(employee);
         }
         // POST: Employee/Edit/5 
 
         [HttpPost]
         public ActionResult Edit(int id, FormCollection collection) {
-            try { // TODO: Add update logic here
-                return RedirectToAction("Index");
+            try {
+                var employee = empList.Single(m => m.ID == id);
+                if (TryUpdateModel(employee)) {
+                    //To Do:- database code 
+                    return RedirectToAction("Index");
+                }
+                return View(employee);
             } catch {
                 return View();
             }
@@ -65,10 +87,8 @@ namespace MVCSimpleApp.Controllers {
             }
         }
 
-
-        [NonAction]
-        public List<Employee> GetEmployeeList() {
-            return new List<Employee> {
+        public static List<Employee> empList =
+            new List<Employee> {
                 new Employee {
                     ID = 1,
                     Name = "Allan",
@@ -90,6 +110,6 @@ namespace MVCSimpleApp.Controllers {
                     JoiningDate = DateTime.Parse(DateTime.Today.ToString()),
                     Age = 26 }
             };
-        }
+
     }
 }
